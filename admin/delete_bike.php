@@ -11,6 +11,6 @@ $id = $_GET['id'];
 $stmt = $pdo->prepare("DELETE FROM bikes WHERE id = ?");
 $stmt->execute([$id]);
 
-header("Location: data_sepeda.php");
+header("Location: data_sepeda.php?delete_success=true");
 exit();
 ?>
