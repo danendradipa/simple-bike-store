@@ -8,4 +8,8 @@ function isLoggedIn() {
 function isAdmin() {
     return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 }
+
+function isManager() {
+    return isset($_SESSION['role']) && $_SESSION['role'] === 'manager';
+}
 ?>
