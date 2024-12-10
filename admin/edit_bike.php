@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$name, $description, $price, $stock, $id]);
     }
 
-    header("Location: dashboard.php");
+    header("Location: data_sepeda.php?edit_success=true");
     exit();
 }
 
@@ -41,7 +41,7 @@ include '../includes/navbar_admin.php';
 
 <div class="container mt-5">
     <h1 class="mb-4">Edit Data Sepeda</h1>
-    <form method="POST" enctype="multipart/form-data" class="p-4 border rounded bg-light">
+    <form method="POST" enctype="multipart/form-data" class="p-4 border rounded bg-light" id="editForm">
         <!-- Input Nama Sepeda -->
         <div class="mb-3">
             <label for="name" class="form-label">Nama Sepeda</label>
@@ -79,7 +79,7 @@ include '../includes/navbar_admin.php';
 
         <!-- Tombol Simpan -->
         <div class="text-end">
-            <button type="submit" class="btn btn-success">
+            <button type="button" class="btn btn-success" onclick="editBikes()">
                 <i class="fas fa-save"></i> Simpan
             </button>
             <a href="data_sepeda.php" class="btn btn-secondary">
@@ -88,3 +88,32 @@ include '../includes/navbar_admin.php';
         </div>
     </form>
 </div>
+
+<script>
+    function editBikes() {
+        // Ambil elemen form
+        const form = document.getElementById('editForm');
+
+        // Cek apakah form valid
+        if (form.checkValidity()) {
+            Swal.fire({
+                title: 'Edit Sepeda',
+                text: "Apakah Anda yakin ingin mengedit sepeda ini?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Edit',
+                cancelButtonText: 'Tidak'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit formulir
+                    form.submit();
+                }
+            });
+        } else {
+            // Jika form tidak valid, tampilkan pesan kesalahan
+            form.reportValidity(); // Menampilkan pesan kesalahan untuk field yang tidak valid
+        }
+    }
+</script>
