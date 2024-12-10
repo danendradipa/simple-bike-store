@@ -9,6 +9,12 @@ if (!isLoggedIn()) {
 
 $bike_id = $_GET['id'];
 
+if (!$bike_id) {
+    // Jika tidak ada ID sepeda di URL, redirect ke halaman sebelumnya atau halaman error
+    header("Location: ./index.php");
+    exit();
+}
+
 // Ambil detail sepeda
 $stmt = $pdo->prepare("SELECT * FROM bikes WHERE id = ?");
 $stmt->execute([$bike_id]);
@@ -24,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $quantity = (int)$_POST['quantity']; // Pastikan tipe data integer
     $sale_date = $_POST['sale_date'];
 
-    // Validasi jumlah pembelian di server
     if ($quantity <= 0) {
         $error = "Jumlah pembelian tidak boleh kurang dari 1.";
     } elseif ($quantity > $bike['stock']) {
@@ -43,10 +48,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         $stmt->execute([$user_id, $bike_id, $sale_date, $quantity, $total_price]);
 
-        header("Location: buy_status.php");
+        // Ambil ID penjualan terakhir
+        $sale_id = $pdo->lastInsertId();
+
+        header("Location: buy_invoice.php?sale_id=$sale_id&success=true");
         exit();
     }
 }
+
 
 include './includes/navbar_user.php';
 ?>
@@ -64,17 +73,17 @@ include './includes/navbar_user.php';
             <?php if (!empty($error)): ?>
                 <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
-            <form method="POST" class="mt-4">
+            <form method="POST" class="mt-4" id="purchaseForm">
                 <div class="mb-3">
                     <label for="sale_date" class="form-label">Tanggal Pembelian</label>
-                    <input type="date" id="sale_date" name="sale_date" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                    <input type="date" id="sale_date" name="sale_date" class="form-control" value="<?= date('Y-m-d') ?>" min="<?= date('Y-m-d') ?>" required>
                 </div>
                 <div class="mb-3">
                     <label for="quantity" class="form-label">Jumlah Pembelian</label>
                     <input type="number" id="quantity" name="quantity" class="form-control" value="1" required>
                 </div>
                 <h4>Total: Rp <span id="total_price"><?= number_format($bike['price'], 2, ',', '.') ?></span></h4>
-                <button type="submit" class="btn btn-success mt-3">Beli Sekarang</button>
+                <button type="button" class="btn btn-success mt-3" onclick="confirmPurchase()">Beli Sekarang</button>
             </form>
         </div>
     </div>
@@ -91,4 +100,22 @@ include './includes/navbar_user.php';
             currency: 'IDR'
         }).replace('Rp', '').trim(); // Menghapus 'Rp ' yang sudah ada
     });
+
+    function confirmPurchase() {
+        Swal.fire({
+            title: 'Konfirmasi Pembelian',
+            text: "Apakah Anda yakin ingin melakukan pembelian?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Beli!',
+            cancelButtonText: 'Tidak'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Jika pengguna mengkonfirmasi, submit formulir
+                document.getElementById('purchaseForm').submit();
+            }
+        });
+    }
 </script>
