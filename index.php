@@ -27,17 +27,17 @@ include './includes/navbar_user.php';
           <img src="./assets/images/<?= htmlspecialchars($bike['image']) ?>" alt="<?= htmlspecialchars($bike['name']) ?>" class="card-img-top" style="height: 200px; object-fit: contain;">
           <div class="card-body d-flex flex-column justify-content-between">
             <div>
-              <h5 class="card-title"><?= htmlspecialchars($bike['name']) ?></h5>
+              <h5 class="card-title fs-3"><?= htmlspecialchars($bike['name']) ?></h5>
               <p class="card-text"><?= htmlspecialchars($bike['description']) ?></p>
             </div>
             <div>
-              <p class="card-text fw-bold font-weight-bold fs-5">Rp <?= number_format($bike['price'], 2) ?></p>
+              <p class="card-text fw-bold font-weight-bold fs-4">Rp <?= number_format($bike['price'], 2, ',', '.') ?></p>
               <?php if ($user_name): ?>
                 <!-- Jika user login, link langsung ke buy_bike -->
                 <a href="buy_bike.php?id=<?= $bike['id'] ?>" class="btn btn-success w-100">Beli Sekarang</a>
               <?php else: ?>
                 <!-- Jika user belum login, arahkan ke login -->
-                <a href="./login.php" class="btn btn-success w-100" onclick="alert('Anda belum login. Silakan login terlebih dahulu.')">Beli Sekarang</a>
+                <a href="./login.php" class="btn btn-success w-100" onclick="confirmLogin(event)">Beli Sekarang</a>
               <?php endif; ?>
             </div>
           </div>
@@ -46,3 +46,24 @@ include './includes/navbar_user.php';
     <?php endforeach; ?>
   </div>
 </div>
+
+<script>
+function confirmLogin(event) {
+    event.preventDefault();
+    Swal.fire({
+        title: 'Anda belum login',
+        text: "Apakah Anda ingin login terlebih dahulu?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Login!',
+        cancelButtonText: 'Tidak'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Jika pengguna mengkonfirmasi, redirect ke halaman login
+            window.location.href = 'login.php';
+        }
+    });
+}
+</script>
