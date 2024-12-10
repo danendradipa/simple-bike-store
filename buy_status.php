@@ -31,23 +31,24 @@ include './includes/navbar_user.php';
 ?>
 
 <div class="container mt-5">
-    <h1 class="mb-4">Status Pembelian</h1>
+    <h1 class="mb-4">Status Transaksi</h1>
     <?php if (count($sales) > 0): ?>
         <table class="table table-bordered table-hover">
-            <thead class="table-dark">
+            <thead class="table-dark text-center">
                 <tr>
-                    <th>ID</th>
+                    <th>ID Transaksi</th>
                     <th>Gambar Sepeda</th>
                     <th>Nama Sepeda</th>
-                    <th>Tanggal Pembelian</th>
+                    <th>Tanggal Transaksi</th>
                     <th>Jumlah</th>
                     <th>Total Harga</th>
                     <th>Status</th>
+                    <th>Detail Pembelian</th> <!-- Kolom baru untuk link ke buy_invoice.php -->
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($sales as $sale): ?>
-                    <tr>
+                    <tr class="text-center">
                         <td><?= htmlspecialchars($sale['id']) ?></td>
                         <td>
                             <img src="./assets/images/<?= htmlspecialchars($sale['image']) ?>" 
@@ -62,6 +63,10 @@ include './includes/navbar_user.php';
                             <span class="badge bg-<?= $sale['status'] === 'completed' ? 'success' : ($sale['status'] === 'pending' ? 'warning' : 'danger') ?>">
                                 <?= ucfirst($sale['status']) ?>
                             </span>
+                        </td>
+                        <td class="text-center">
+                            <!-- Link menuju buy_invoice.php dengan parameter sale_id -->
+                            <a href="buy_invoice.php?sale_id=<?= $sale['id'] ?>" class="btn btn-primary btn-sm">Lihat Detail</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
