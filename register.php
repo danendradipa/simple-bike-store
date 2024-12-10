@@ -3,6 +3,7 @@ include 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $username = $_POST['username'];
+  $email = $_POST['email'];
   $password = $_POST['password'];
   $confirm_password = $_POST['confirm_password'];
 
@@ -12,13 +13,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   } elseif ($password !== $confirm_password) {
     $error = "Password dan konfirmasi password tidak sesuai.";
   } else {
-    // Jika validasi lolos, simpan ke database
-    $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-    $stmt = $pdo->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-    $stmt->execute([$username, $hashed_password]);
+    // Cek apakah username atau email sudah terdaftar
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
+    $stmt->execute([$username, $email]);
+    $existingUser = $stmt->fetch();
 
-    header("Location: login.php");
-    exit();
+    if ($existingUser) {
+      if ($existingUser['username'] === $username) {
+        $error = "Username sudah digunakan.";
+      } elseif ($existingUser['email'] === $email) {
+        $error = "Email sudah terdaftar.";
+      }
+    } else {
+      // Jika validasi lolos, simpan ke database
+      $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+      $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+      $stmt->execute([$username, $email, $hashed_password]);
+
+      header("Location: register.php");
+      exit();
+    }
   }
 }
 ?>
@@ -30,8 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/all.min.css">
+  <link rel="stylesheet" href="css/sweetalert2.min.css">
   <style>
     body {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -41,7 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .register-container {
-      max-width: 400px;
+      max-width: 500px;
+      width: 100%;
       margin: auto;
       padding: 2rem;
       background: rgba(255, 255, 255, 0.95);
@@ -112,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .password-toggle {
       position: absolute;
       right: 10px;
-      top: 35px;
+      top: 40px;
       cursor: pointer;
       color: #4a5568;
     }
@@ -147,10 +163,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     <?php endif; ?>
 
-    <form method="POST">
+    <form method="POST" id="registerForm">
       <div class="form-group">
         <label for="username">Username</label>
         <input type="text" class="form-control" id="username" name="username" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" class="form-control" id="email" name="email" required>
       </div>
       <div class="form-group">
         <label for="password">Password</label>
@@ -163,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
         <i class="fas fa-eye password-toggle" id="toggleConfirmPassword"></i>
       </div>
-      <button type="submit" class="btn btn-register">
+      <button type="submit" class="btn btn-register" onclick="register()">
         <i class="fas fa-user-plus me-2"></i> Daftar
       </button>
     </form>
@@ -173,6 +193,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
   </div>
 
+  <script src="js/sweetalert2.all.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
   <script>
     document.getElementById('togglePassword').addEventListener('click', function() {
       const password = document.getElementById('password');
@@ -189,8 +211,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       this.classList.toggle('fa-eye');
       this.classList.toggle('fa-eye-slash');
     });
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+      // Cek apakah ada pesan error di halaman
+      const errorMessage = document.querySelector('.error-message');
+
+      // Cek apakah ada pesan sukses di session storage dan tidak ada pesan error
+      if (sessionStorage.getItem('registrationSuccess') && !errorMessage) {
+        Swal.fire({
+          title: "Registrasi",
+          text: "Anda Berhasil Registrasi, Silahkan Login",
+          icon: "success"
+        });
+        // Hapus pesan sukses setelah ditampilkan
+        sessionStorage.removeItem('registrationSuccess');
+      }
+    });
+
+    // Simpan status registrasi di session storage sebelum form disubmit
+    document.getElementById('registerForm').onsubmit = function() {
+      sessionStorage.setItem('registrationSuccess', 'true');
+    };
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 
