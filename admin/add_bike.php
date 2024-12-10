@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("INSERT INTO bikes (name, description, price, stock, image) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$name, $description, $price, $stock, $image]);
 
-        header("Location: data_sepeda.php");
+        header("Location: data_sepeda.php?add_success=true");
         exit();
     } else {
         $error = "Gagal mengunggah gambar. Pastikan file valid.";
@@ -37,7 +37,7 @@ include '../includes/navbar_admin.php';
     <?php if (!empty($error)): ?>
         <div class="alert alert-danger"><?= $error ?></div>
     <?php endif; ?>
-    <form method="POST" enctype="multipart/form-data" class="shadow p-4 bg-light rounded">
+    <form method="POST" enctype="multipart/form-data" class="shadow p-4 bg-light rounded" id="addForm">
         <div class="mb-3">
             <label for="name" class="form-label">Nama Sepeda</label>
             <input type="text" id="name" name="name" class="form-control" placeholder="Masukkan nama sepeda" required>
@@ -58,6 +58,36 @@ include '../includes/navbar_admin.php';
             <label for="image" class="form-label">Unggah Gambar</label>
             <input type="file" id="image" name="image" class="form-control" accept="image/*" required>
         </div>
-        <button type="submit" class="btn btn-primary">Tambah Sepeda</button>
+        <button type="button" class="btn btn-primary" onclick="addBikes()">Tambah Sepeda</button>
+        <a href="data_sepeda.php" class="btn btn-secondary">Kembali</a>
     </form>
 </div>
+
+<script>
+    function addBikes() {
+        // Ambil elemen form
+        const form = document.getElementById('addForm');
+
+        // Cek apakah form valid
+        if (form.checkValidity()) {
+            Swal.fire({
+                title: 'Tambah Sepeda',
+                text: "Apakah Anda yakin ingin menambahkan sepeda ini?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Tambahkan',
+                cancelButtonText: 'Tidak'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Jika pengguna mengkonfirmasi, submit formulir
+                    form.submit();
+                }
+            });
+        } else {
+            // Jika form tidak valid, tampilkan pesan kesalahan
+            form.reportValidity(); // Menampilkan pesan kesalahan untuk field yang tidak valid
+        }
+    }
+</script>
